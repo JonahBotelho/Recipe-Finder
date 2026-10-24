@@ -1,15 +1,20 @@
 package com.bcit.final_project.ui.main
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -18,26 +23,27 @@ import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -52,9 +58,10 @@ fun MainContent(recipeState: RecipeState) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavBar(
-                navController = navController
-            )
+            Column {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                NavBar(navController = navController)
+            }
         }
     ) { sPadding ->
         NavHost(
@@ -63,30 +70,17 @@ fun MainContent(recipeState: RecipeState) {
             modifier = Modifier.padding(sPadding)
         ) {
             composable("bookmarks") {
-                Bookmarks(
-                    navController = navController,
-                    recipeState = recipeState,
-                )
+                Bookmarks(navController = navController, recipeState = recipeState)
             }
             composable("search") {
-                Search(
-                    navController = navController,
-                    recipeState = recipeState,
-                )
+                Search(navController = navController, recipeState = recipeState)
             }
             composable(
                 route = "details/{recipeID}",
-                arguments = listOf(
-                    navArgument("recipeID") {
-                        type = NavType.StringType
-                    }
-                )
+                arguments = listOf(navArgument("recipeID") { type = NavType.StringType })
             ) { backStackEntry ->
-
-                val recipeId = backStackEntry.arguments?.getString("recipeID")
-
                 RecipeDescription(
-                    recipeId = recipeId ?: "",
+                    recipeId = backStackEntry.arguments?.getString("recipeID") ?: "",
                     recipeState = recipeState
                 )
             }
@@ -95,33 +89,48 @@ fun MainContent(recipeState: RecipeState) {
 }
 
 @Composable
+private fun PageHeading(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier
+            .padding(top = 8.dp, bottom = 4.dp)
+            .semantics { heading() }
+    )
+}
+
+@Composable
 fun Bookmarks(navController: NavController, recipeState: RecipeState) {
     val favourites by recipeState.favourites.collectAsState(initial = emptyList())
 
-    Box(
-        modifier = Modifier.fillMaxSize()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        PageHeading("Favourites")
         if (favourites.isEmpty()) {
-            Text(
-                text = "No favourites saved yet.",
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                Text(
+                    text = "No favourites saved yet.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(favourites, key = { recipe -> recipe.id }) { recipe ->
                     ItemCard(
                         recipe = recipe,
                         isFavourite = true,
-                        onToggleFavourite = {
-                            recipeState.toggleFavourite(recipe)
-                        },
-                        onClick = {
-                            navController.navigate("details/${recipe.id}")
-                        }
+                        onToggleFavourite = { recipeState.toggleFavourite(recipe) },
+                        onClick = { navController.navigate("details/${recipe.id}") }
                     )
                 }
             }
@@ -149,9 +158,10 @@ fun Search(navController: NavController, recipeState: RecipeState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        PageHeading("Recipes")
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -160,14 +170,20 @@ fun Search(navController: NavController, recipeState: RecipeState) {
             OutlinedTextField(
                 value = recipeState.searchInput,
                 onValueChange = recipeState::updateSearchInput,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = "Search recipes" },
                 singleLine = true,
-                label = {
-                    Text("Search recipes")
-                },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search
+                placeholder = { Text("Search recipes") },
+                textStyle = MaterialTheme.typography.bodyLarge,
+                shape = MaterialTheme.shapes.small,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
                 ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         recipeState.submitSearch()
@@ -176,9 +192,7 @@ fun Search(navController: NavController, recipeState: RecipeState) {
                 ),
                 trailingIcon = {
                     if (recipeState.searchInput.isNotEmpty() || recipeState.activeSearchQuery != null) {
-                        IconButton(
-                            onClick = recipeState::clearSearch
-                        ) {
+                        IconButton(onClick = recipeState::clearSearch) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Clear search"
@@ -187,11 +201,13 @@ fun Search(navController: NavController, recipeState: RecipeState) {
                     }
                 }
             )
-            IconButton(
+            FilledIconButton(
                 onClick = {
                     recipeState.submitSearch()
                     focusManager.clearFocus()
-                }
+                },
+                modifier = Modifier.size(56.dp),
+                shape = MaterialTheme.shapes.small
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -202,38 +218,28 @@ fun Search(navController: NavController, recipeState: RecipeState) {
 
         when {
             recipeState.isLoading && visibleRecipes.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
             }
 
             recipeState.errorMessage != null && visibleRecipes.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                     Text(
                         text = recipeState.errorMessage.orEmpty(),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }
 
             recipeState.activeSearchQuery != null && visibleRecipes.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                     Text(
                         text = "No recipes found for \"${recipeState.activeSearchQuery}\".",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -241,21 +247,16 @@ fun Search(navController: NavController, recipeState: RecipeState) {
 
             else -> {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentPadding = PaddingValues(bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(visibleRecipes, key = { recipe -> recipe.id }) { recipe ->
                         ItemCard(
                             recipe = recipe,
                             isFavourite = recipe.id in favouriteIds,
-                            onToggleFavourite = {
-                                recipeState.toggleFavourite(recipe)
-                            },
-                            onClick = {
-                                navController.navigate("details/${recipe.id}")
-                            }
+                            onToggleFavourite = { recipeState.toggleFavourite(recipe) },
+                            onClick = { navController.navigate("details/${recipe.id}") }
                         )
                     }
                 }
@@ -272,17 +273,17 @@ fun ItemCard(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .heightIn(min = 80.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -292,31 +293,20 @@ fun ItemCard(
             ) {
                 Text(
                     text = recipe.name ?: "Untitled",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleMedium
                 )
                 if (!recipe.category.isNullOrBlank()) {
                     Text(
                         text = recipe.category,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            IconButton(
-                onClick = onToggleFavourite
-            ) {
+            IconButton(onClick = onToggleFavourite) {
                 Icon(
-                    imageVector = if (isFavourite) {
-                        Icons.Default.Star
-                    } else {
-                        Icons.Outlined.StarBorder
-                    },
-                    contentDescription = if (isFavourite) {
-                        "Remove favourite"
-                    } else {
-                        "Add favourite"
-                    },
+                    imageVector = if (isFavourite) Icons.Default.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (isFavourite) "Remove favourite" else "Add favourite",
                     tint = if (isFavourite) {
                         MaterialTheme.colorScheme.tertiary
                     } else {
@@ -334,55 +324,81 @@ fun RecipeDescription(recipeId: String, recipeState: RecipeState) {
         recipeState.loadRecipe(recipeId)
     }
 
-
     when {
         recipeState.selectedRecipe != null -> {
             val recipe = recipeState.selectedRecipe!!
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
                     Text(
                         text = recipe.name ?: "Untitled",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.semantics { heading() }
                     )
                 }
                 item {
                     Text(
                         text = "Category: ${recipe.category ?: "None"}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                item {
+                    Text(
+                        text = "Instructions",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(top = 12.dp).semantics { heading() }
                     )
                 }
                 item {
                     Text(
                         text = recipe.instructions ?: "",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
                 item {
                     Text(
                         text = "Ingredients",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(top = 12.dp).semantics { heading() }
                     )
                 }
                 items(recipe.ingredientsList.entries.toList()) { (ingredient, measure) ->
-                    Text(
-                        text = if (measure.isBlank()) {
-                            ingredient
-                        } else {
-                            "$ingredient: $measure"
-                        },
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    )
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = ingredient,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            if (measure.isNotBlank()) {
+                                Text(
+                                    text = measure,
+                                    modifier = Modifier.weight(0.6f),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                                )
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
                 }
+            }
+        }
+
+        recipeState.isRecipeDetailLoading -> {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }

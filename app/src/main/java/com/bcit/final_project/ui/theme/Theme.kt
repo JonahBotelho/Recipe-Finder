@@ -1,67 +1,52 @@
 package com.bcit.final_project.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
-    primary = White, // selected text
-    secondary = LightGrey,
-    tertiary = White,
-    background = LightGrey,
-    surface = DarkerGrey, // navbar
-    surfaceVariant = DarkGrey, // card background
-    onPrimary = White,
-    onSecondary = White,
-    onTertiary = White,
-    onBackground = White,
-    onSurface = White,
-    onSurfaceVariant = White // icons not selected and text
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Color.Blue,
-    secondary = Color.White,
-    tertiary = Color.Gray
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val PorcelainCobaltColorScheme = lightColorScheme(
+    primary = Cobalt,
+    onPrimary = Paper,
+    primaryContainer = PaleBlue,
+    onPrimaryContainer = Cobalt,
+    secondary = Slate,
+    onSecondary = Paper,
+    secondaryContainer = PaleBlue,
+    onSecondaryContainer = Ink,
+    tertiary = Amber,
+    onTertiary = Paper,
+    background = Porcelain,
+    onBackground = Ink,
+    surface = Paper,
+    onSurface = Ink,
+    surfaceVariant = Porcelain,
+    onSurfaceVariant = Slate,
+    surfaceTint = Cobalt,
+    outline = Slate,
+    outlineVariant = Mist,
+    surfaceBright = Paper,
+    surfaceDim = Mist,
+    surfaceContainerLowest = Paper,
+    surfaceContainerLow = Paper,
+    surfaceContainer = Porcelain,
+    surfaceContainerHigh = PaleBlue,
+    surfaceContainerHighest = PaleBlue
 )
 
 @Composable
-fun Final_projectTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+fun Final_projectTheme(content: @Composable () -> Unit) {
+    // Keep the chosen light palette consistent with the Porcelain & Cobalt concept.
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = PorcelainCobaltColorScheme,
         typography = Typography,
+        shapes = Shapes(
+            small = RoundedCornerShape(12.dp),
+            medium = RoundedCornerShape(16.dp),
+            large = RoundedCornerShape(20.dp)
+        ),
         content = content
     )
 }
